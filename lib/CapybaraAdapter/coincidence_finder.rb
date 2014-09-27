@@ -5,6 +5,13 @@ class CoincidenceFinder
   #talk with Daniil
   #TODO who inject it?
   attr_accessor :ontology
+  attr_accessor :recordsFinder
+
+
+  def initialize (ontology)
+    @ontology = ontology;
+    @recordsFinder = GivenRecordsFinder.new(@ontology)
+  end
 
   def page_line(step, page_name)
       if (step.type == "Given")
@@ -16,7 +23,14 @@ class CoincidenceFinder
   end
 
   def find(step)
+
     if /on the.+/ =~ step.params_line
+
+
+      page = @ontology.find_posible_page step.params_line
+      if !page.nil?
+        return page_line step, page
+      end
       page_name = step.params_line.match(/on the (\w+)/).captures
       return page_line step, page_name[0]
     else if /am at.+/ =~ step.params_line
@@ -37,6 +51,10 @@ class CoincidenceFinder
     end
 
     if /see/ =~ step  #TODO find argument
+      page = @ontology.find_posible_content step
+      if !page.nil?
+        return "page.should have_content(\"#{page}\")"
+      end
       return "page.should have_content(arg1)"
     end
 
@@ -61,7 +79,6 @@ class CoincidenceFinder
         step = scan_previous_steps([/email/, /mail/])
         size = step.parameters.size - 1
         step.addLine "@mail_name = #{step.parameters[size]}"
-        puts ''
         return '@email = UserMailer.create_signup(@mail_name, "Jojo Binks")' + "\n" +
             '@email.should deliver_to(@mail_name)'
       end
@@ -77,7 +94,7 @@ class CoincidenceFinder
     #Capybara function
     @steps_holder = steps_holder
      steps_holder.steps.each do |step|
-       return_val = GivenRecordsFinder.finder(step)
+       return_val = @recordsFinder.finder(step)
        if return_val != nil
          step.innerCode = return_val
          next
@@ -85,7 +102,6 @@ class CoincidenceFinder
        return_val = find(step)
        if return_val != nil and !return_val.empty?
          step.innerCode = return_val
-         puts return_val
        end
      end
      #Matches to ontology

@@ -16,7 +16,7 @@
 #    model_class.find(:first, :order => 'RAND()')
 #  end
 #end
-  task :tdd do
+  task :tgt do
     puts "JJJJJJJJJJJJJJJJJJJJJJJJ"
   end
 

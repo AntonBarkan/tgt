@@ -1,10 +1,15 @@
+require 'XMLParsers/ontology_parser'
+
 class OntologyUtils
   #TBI mock dont use really ontology need
 
   attr_accessor :ontology_holder
+  attr_accessor :classesHash
+  attr_accessor :ontologyParser
 
-  def initialize #TODO init ontology holder or set like constructor parameter
-
+  def initialize (file) #TODO init ontology holder or set like constructor parameter
+    @ontologyParser =  OntologyParser.new(file)
+    @classesHash =  @ontologyParser.classes
   end
 
   def go (steps_holder)#is it right place for method?
@@ -31,6 +36,36 @@ class OntologyUtils
 
   def prop_matcher
 
+  end
+
+  def find_posible_page (line)
+    @classesHash.each do |x, _|
+      if (line.downcase.include? x.downcase)
+        return x.downcase
+      end
+
+    end
+    return nil
+  end
+
+  def find_posible_content (line)
+    @classesHash.each do |x, _|
+      if (line.include? x)
+        return x
+      end
+
+    end
+    return nil
+  end
+
+  def find_posible_record (line)
+    @classesHash.each do |x, _|
+       if (line.downcase.include? x.downcase)
+         return x.downcase
+       end
+
+    end
+    return nil
   end
 
 

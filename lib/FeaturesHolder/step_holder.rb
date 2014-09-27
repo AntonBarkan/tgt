@@ -5,7 +5,6 @@ class StepHolder
 
   def pars(line)
      @stepLine = line.lstrip
-     puts 'text = ' + @stepLine
   end
 
 end

@@ -14,7 +14,7 @@ class CucumberRunner
   end
 
 
-def run(path)
+def run(path, ontology)
   runComand = ''
   pipe = Open3.popen3('cucumber /home/anton/RubymineProjects/sample_app/features/my.feature') do |stdin, stdout, stderr, wait_thr|
     cucumberOutput =  stdout.read
@@ -46,30 +46,34 @@ def run(path)
     #
     if cucumberOutput.include? 'You can implement step definitions for undefined steps with these snippets:'
       #if !File.exists?("/home/anton/Documents/project/Loggin/features/step_definitions/Loggin_steps.rb")
-        puts 'steps file not exists'
+      #  puts 'steps file not exists'
 
         #/home/anton/Documents/project/tests/mail/mail.feature
         #/home/anton/Documents/project/tests/first/first.features
-        steps_file = File.open("/home/anton/Documents/project/tests/mail/step_definitions/mail.rb", 'w')
+
+        name = path.byteslice( (path.length - path.reverse.index('/'))..path.index(".feature")-1)
+
+
+        steps_file = File.open("/home/anton/RubymineProjects/sample_app/features/step_definitions/#{name}_steps.rb", 'w')
         sp =  StepsParser.new(cucumberOutput)
         #puts cucumberOutput
-        steps_file.close
+
         sp.connect_features_to_steps(fp.feature_holder)
 
         #filling steps
-        coincidence_finder = CoincidenceFinder.new
+        coincidence_finder = CoincidenceFinder.new(OntologyUtils.new(ontology))
 
-        # TODO move injection from there
-        coincidence_finder.ontology = OntologyUtils.new
+
 
         coincidence_finder.go sp.steps_holder
 
         sp.steps_holder.steps.each do |step|
-          puts step.type + " /" + step.params_line + "/ do "+ CucumberRunner.print_parameters(step) +"\n"
-          puts "\t" + step.innerCode + "\n"
-          puts 'end'
-        end
+          steps_file.write step.type + " /" + step.params_line + "/ do "+ CucumberRunner.print_parameters(step) +"\n"
+          steps_file.write "\t" + step.innerCode + "\n"
+          steps_file.write "end\n\n"
 
+        end
+        steps_file.close
       #else
       #  puts 'steps file exists'
       #end
