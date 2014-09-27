@@ -19,7 +19,6 @@ class CoincidenceFinder
       elsif (step.type == "Then")
         return "current_path.should == '/#{page_name}'"
       end
-
   end
 
   def find(step)
@@ -39,7 +38,7 @@ class CoincidenceFinder
              end
          end
     end
-
+    step_holder =  step
     step = step.params_line
 
     if /press/ =~ step  or
@@ -50,13 +49,12 @@ class CoincidenceFinder
       return "click_on arg1"
     end
 
-    if /see/ =~ step  #TODO find argument
-      page = @ontology.find_posible_content step
-      if !page.nil?
-        return "page.should have_content(\"#{page}\")"
-      end
-      return "page.should have_content(arg1)"
+    if /see/ =~ step or
+      /have/ =~ step#TODO find argument
+      return page_contain step_holder
     end
+
+
 
     if /fill/ =~ step or
         /write/ =~ step or
@@ -87,6 +85,36 @@ class CoincidenceFinder
       end
     end
 
+  end
+
+
+  def page_contain(step)
+    pages = @ontology.find_posible_content step.params_line
+    if !pages.nil?
+      return_value =  '';
+      pages.each do |page|
+         line= "page.should have_content(\"#{page}\")"
+
+        return_value = return_value + (return_value.empty? ? '' : "\n\t") + replace_not(line, 'have_content', 'have_no_content', step.params_line)
+        #return return_value.nil? ? "" :  return_value
+      end
+    else
+      if (step.numberOfArguments > 0)
+        return_value =  "page.should have_content(arg1)"
+        return_value = replace_not(return_value, 'have_content', 'have_no_content', step.params_line)
+      end
+    end
+
+
+    return return_value.nil? ? "" :  return_value
+  end
+
+  def replace_not(line, from, to, step)
+    if  / not / =~ step  or
+        / no / =~ step
+      line = line.sub from, to
+    end
+    return line
   end
 
   #TODO create executer, create capybara utils... move this code to executer

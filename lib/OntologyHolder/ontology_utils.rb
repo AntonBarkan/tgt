@@ -49,13 +49,14 @@ class OntologyUtils
   end
 
   def find_posible_content (line)
+    arr = Array.new
     @classesHash.each do |x, _|
       if (line.include? x)
-        return x
+         arr << x
       end
 
     end
-    return nil
+    return arr.length == 0 ? nil : arr
   end
 
   def find_posible_record (line)
